@@ -1,10 +1,15 @@
+import { useNavigate } from 'react-router-dom';
 import React, { useState } from 'react';
 import API from '../../api';
 
 function SignUp() {
+    const navigate = useNavigate();
+
   const [selectedRole, setSelectedRole] = useState('');
   const [formData, setFormData] = useState({});
   const [message, setMessage] = useState('');
+  const [signUpSuccess, setSignUpSuccess] = useState(false);
+
 
   const handleRoleSelection = (role) => {
     setSelectedRole(role);
@@ -20,6 +25,11 @@ function SignUp() {
     }));
   };
 
+  const handleLogin = () => {
+    navigate('/login');
+
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.email || !formData.password || !selectedRole) {
@@ -29,7 +39,8 @@ function SignUp() {
     try {
       const endpoint = `/auth/signup/${selectedRole}`;
       const res = await API.post(endpoint, formData);
-      setMessage(res.data.message || 'Registration successful!');
+      setMessage(res.data.message || 'Registration successful! Login Now!');
+      setSignUpSuccess(true);
     } catch (err) {
       console.error(err);
       setMessage(err.response?.data?.message || 'Registration failed');
@@ -112,6 +123,13 @@ function SignUp() {
           Register
         </button>
         {message && <p className="text-center mt-2 text-green-500">{message}</p>}
+        {signUpSuccess &&         <button
+          onClick={handleLogin}
+          className="bg-green-500 hover:bg-blue-600 text-white px-4 py-2 rounded flex items-center transition-colors cursor-pointer"
+        >
+          Login
+        </button>}
+
       </form>
     );
   };

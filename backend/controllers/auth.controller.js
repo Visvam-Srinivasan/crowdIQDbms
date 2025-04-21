@@ -9,16 +9,16 @@ const insertRoleSpecificUser = (role, userData) => {
 
         switch (role) {
             case 'admin':
-                query = 'INSERT INTO admins (email, password, admin_code) VALUES (?, ?, ?)';
-                values = [userData.email, userData.password, userData.adminCode];
+                query = 'INSERT INTO admins (email, password, admin_code, name) VALUES (?, ?, ?, ?)';
+                values = [userData.email, userData.password, userData.adminCode, userData.fullName];
                 break;
             case 'staff':
-                query = 'INSERT INTO staff (email, password, staff_code) VALUES (?, ?, ?)';
-                values = [userData.email, userData.password, userData.staffCode];
+                query = 'INSERT INTO staffs (email, password, staff_code, name) VALUES (?, ?, ?, ?)';
+                values = [userData.email, userData.password, userData.staffCode, userData.fullName];
                 break;
             case 'attendee':
-                query = 'INSERT INTO attendees (email, password, full_name, ticket_id) VALUES (?, ?, ?, ?)';
-                values = [userData.email, userData.password, userData.fullName, userData.ticketId];
+                query = 'INSERT INTO attendees (email, password, ticket_id, name) VALUES (?, ?, ?, ?)';
+                values = [userData.email, userData.password, userData.fullName, userData.ticketId, userData.fullName];
                 break;
         }
 
@@ -92,7 +92,7 @@ exports.loginUser = (req, res) => {
         return res.status(400).json({ message: 'Email, password, and role are required' });
     }
 
-    const query = `SELECT * FROM ${role}s WHERE email = ? AND password = ?`;
+    const query = `SELECT ${role}_id AS id, name, email FROM ${role}s WHERE email = ? AND password = ?`;
     db.query(query, [email, password], (err, results) => {
         if (err) {
             return res.status(500).json({ message: 'Error during login', error: err });

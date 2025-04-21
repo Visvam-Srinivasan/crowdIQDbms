@@ -6,12 +6,12 @@ function Login() {
   const [selectedRole, setSelectedRole] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [message, setMessage] = useState(''); // Added for displaying messages
+  const [message, setMessage] = useState('');
   const navigate = useNavigate();
 
   const handleRoleSelection = (role) => {
     setSelectedRole(role);
-    setMessage(''); // Clear message on role change
+    setMessage('');
   };
 
   const handleLogin = async () => {
@@ -32,8 +32,11 @@ function Login() {
       });
 
       setMessage(res.data.message || 'Login successful');
-      // Redirect to respective dashboard
-      //navigate(`/dashboard/${selectedRole}`);
+      const { id, full_name } = res.data.user;
+      localStorage.setItem('userId', id);
+      localStorage.setItem('userName', full_name);
+      localStorage.setItem('userRole', selectedRole); // Store the selected role!
+      navigate(`/${selectedRole}/dashboard`);
     } catch (error) {
       console.error(error);
       setMessage(error.response?.data?.message || 'Login failed');
@@ -84,7 +87,7 @@ function Login() {
             >
               Login
             </button>
-             {message && <p className="text-center mt-2 text-green-500">{message}</p>}
+            {message && <p className="text-center mt-2 text-green-500">{message}</p>}
           </div>
         )}
       </div>

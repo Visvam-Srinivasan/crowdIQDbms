@@ -4,18 +4,22 @@ import Navbar from './components/Navbar';
 import Login from './components/authentication/Login';
 import SignUp from './components/authentication/SignUp';
 import Home from './components/Home';
-
+import AdminDashboard from './components/admin/AdminDashboard';
+import StaffDashboard from './components/staff/StaffDashboard';
+import AttendeeDashboard from './components/attendee/StaffDashboard';
 function App() {
-  const [role, setRole] = React.useState('staff'); // hardcoded for now or use from login logic
 
   return (
     <Router>
-      <Navbar role={role} onLogout={() => setRole('')} /> {/* Navbar is displayed at the top */}
+      <Navbar /> 
       <div className="min-h-screen bg-gray-100"> {/* Adding a wrapper for the page content */}
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/staff/dashboard" element={<StaffDashboard />} />
+          <Route path="/attendee/dashboard" element={<AttendeeDashboard />} />
 
         </Routes>
       </div>
