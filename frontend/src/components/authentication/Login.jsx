@@ -25,16 +25,16 @@ function Login() {
     }
 
     try {
-      const res = await API.post('/auth/login', {
+      const res = await API.post('/login', {
         role: selectedRole,
         email,
         password,
       });
 
       setMessage(res.data.message || 'Login successful');
-      const { id, full_name } = res.data.user;
+      const { id, name } = res.data.user;
       localStorage.setItem('userId', id);
-      localStorage.setItem('userName', full_name);
+      localStorage.setItem('userName', name);
       localStorage.setItem('userRole', selectedRole); // Store the selected role!
       navigate(`/${selectedRole}/dashboard`);
     } catch (error) {

@@ -25,7 +25,7 @@ function Navbar() {
     } else {
       // Handle the case where userRole is not in localStorage (optional)
       console.error('User role not found in localStorage');
-      //  You might want to redirect to a default dashboard or show an error message
+      //   You might want to redirect to a default dashboard or show an error message
       navigate('/'); // Or some other default route
     }
   };
@@ -70,11 +70,13 @@ function Navbar() {
       >
         <Users className="mr-2 w-6 h-6" />
         CrowdIQ
+        {isLoggedIn && (
+          <span className="text-gray-300 ml-2">| Welcome, {userName || 'User'}</span>
+        )}
       </h1>
       <div className="flex space-x-4 items-center">
         {isLoggedIn ? (
           <>
-            <span className="text-gray-300">Welcome, {userName || 'User'}</span>
             <button
               onClick={handleDashboardClick}
               className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded flex items-center transition-colors"

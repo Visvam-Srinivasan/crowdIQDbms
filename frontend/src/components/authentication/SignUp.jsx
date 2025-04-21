@@ -37,7 +37,7 @@ function SignUp() {
       return;
     }
     try {
-      const endpoint = `/auth/signup/${selectedRole}`;
+      const endpoint = `/signup/${selectedRole}`;
       const res = await API.post(endpoint, formData);
       setMessage(res.data.message || 'Registration successful! Login Now!');
       setSignUpSuccess(true);
