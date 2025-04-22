@@ -1,26 +1,27 @@
-import React, { useState } from 'react';
-//import { format } from 'date-fns'; // Removed - Not used
-
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams, useRevalidator } from 'react-router-dom'; // Import useParams
 import API from '../../api';
 
 const CreateEvent = () => {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         eventName: '',
         eventDescription: '',
         eventDate: '',
         eventTime: '',
         eventLocation: '',
-        adminId: '',
         seatingType: '',
         numberOfQuadrants: '',
         attendeesPerQuadrant: '',
         numberOfGatesPerQuadrant: '',
     });
-
     const [errors, setErrors] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submissionStatus, setSubmissionStatus] = useState('idle');
     const [submissionMessage, setSubmissionMessage] = useState('');
+
+    // Get adminId from localStorage
+    const adminIdLocalStorage = localStorage.getItem('userId');
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -63,10 +64,6 @@ const CreateEvent = () => {
             newErrors.eventLocation = 'Event location is required';
             isValid = false;
         }
-        if (!formData.adminId.trim()) {
-            newErrors.adminId = 'Admin ID is required';
-            isValid = false;
-        }
         if (!formData.seatingType) {
             newErrors.seatingType = 'Seating type is required';
             isValid = false;
@@ -101,23 +98,18 @@ const CreateEvent = () => {
 
         try {
             const endpoint = '/events/createEvent';
-            const response = await API.post(endpoint, formData);
+            // Include adminId in the request body
+            const requestData = {
+                ...formData,
+                adminId: adminIdLocalStorage , // Use adminId from localStorage
+            };
+            const response = await API.post(endpoint, requestData);
 
             if (response.status === 201) {
                 setSubmissionStatus('success');
-                setSubmissionMessage('Event created successfully!');
-                setFormData({
-                    eventName: '',
-                    eventDescription: '',
-                    eventDate: '',
-                    eventTime: '',
-                    eventLocation: '',
-                    adminId: '',
-                    seatingType: '',
-                    numberOfQuadrants: '',
-                    attendeesPerQuadrant: '',
-                    numberOfGatesPerQuadrant: '',
-                });
+                setSubmissionMessage('Event created successfully! Now, assign staff to gates.');
+                navigate(`/admin/assignStaff/${response.data.eventId}`);
+
             } else {
                 setSubmissionStatus('error');
                 setSubmissionMessage(response.data.message || 'Failed to create event. Please try again.');
@@ -223,22 +215,6 @@ const CreateEvent = () => {
                             )}
                         </div>
                         <div className="space-y-2">
-                            <label htmlFor="adminId" className="block text-sm font-medium text-gray-700">Admin ID</label>
-                            <input
-                                id="adminId"
-                                name="adminId"
-                                type="text"
-                                value={formData.adminId}
-                                onChange={handleChange}
-                                required
-                                placeholder="Admin ID"
-                                className={`w-full px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${errors.adminId ? "border-red-500" : "border-gray-300"}`}
-                            />
-                            {errors.adminId && (
-                                <p className="mt-1 text-sm text-red-600" id="adminId-error">{errors.adminId}</p>
-                            )}
-                        </div>
-                        <div className="space-y-2">
                             <label htmlFor="seatingType" className="block text-sm font-medium text-gray-700">Seating Type</label>
                             <select
                                 id="seatingType"
@@ -334,4 +310,126 @@ const CreateEvent = () => {
     );
 };
 
-export default CreateEvent;
+
+const AssignStaffToGates = () => {
+    const { eventId } = useParams();
+    const [eventDetails, setEventDetails] = useState(null);
+    const [assignments, setAssignments] = useState({});
+    const [loading, setLoading] = useState(true);
+    const [eventNotFound, setEventNotFound] = useState(false);
+    const [submissionStatus, setSubmissionStatus] = useState('');
+    const [message, setMessage] = useState('');
+
+    useEffect(() => {
+        const fetchEventDetails = async () => {
+            try {
+                const response = await API.get(`/events/getEvent/${eventId}`);
+                setEventDetails(response.data);
+                initializeAssignments(response.data);
+            } catch (error) {
+                console.error('Failed to fetch event details:', error);
+                if (error.response && error.response.status === 404) {
+                    setEventNotFound(true);
+                }
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchEventDetails();
+    }, [eventId]);
+
+    const initializeAssignments = (event) => {
+        // Just creates empty input fields for user to fill manually
+        const { number_of_quadrants, number_of_gates_per_quadrant } = event;
+        const data = {};
+        for (let q = 1; q <= number_of_quadrants; q++) {
+            data[q] = {};
+            for (let g = 1; g <= number_of_gates_per_quadrant; g++) {
+                data[q][g] = ''; // empty for manual input
+            }
+        }
+        setAssignments(data);
+    };
+
+    const handleChange = (quadrant, gate, value) => {
+        setAssignments(prev => ({
+            ...prev,
+            [quadrant]: {
+                ...prev[quadrant],
+                [gate]: value,
+            },
+        }));
+    };
+
+    const handleSubmit = async () => {
+        const assignmentArray = [];
+        for (let quadrant in assignments) {
+            for (let gate in assignments[quadrant]) {
+                const staffId = assignments[quadrant][gate];
+                if (staffId) {
+                    assignmentArray.push({
+                        event_id: parseInt(eventId),
+                        staff_id: staffId,
+                        quadrant_number: parseInt(quadrant),
+                        gate_number: parseInt(gate),
+                    });
+                }
+            }
+        }
+
+        try {
+            await API.post('/events/staffForGates', assignmentArray);
+            setSubmissionStatus('success');
+            setMessage('Staff assigned successfully!');
+        } catch (error) {
+            console.error('Assignment error:', error);
+            setSubmissionStatus('error');
+            setMessage('Failed to assign staff. Please try again.');
+        }
+    };
+
+    if (loading) return <div className="text-center py-10">Loading event data...</div>;
+    if (eventNotFound) return <div className="text-center py-10 text-red-600 text-xl font-semibold">Event not found</div>;
+
+    return (
+        <div className="max-w-3xl mx-auto p-6">
+            <h2 className="text-2xl font-bold mb-4">Assign Staff to Gates</h2>
+            {Object.keys(assignments).map((quadrant) => (
+                <div key={quadrant} className="mb-6 border p-4 rounded shadow bg-white">
+                    <h3 className="font-semibold text-lg mb-2">Quadrant {quadrant}</h3>
+                    {Object.keys(assignments[quadrant]).map((gate) => (
+                        <div key={gate} className="flex items-center gap-4 mb-2">
+                            <label className="w-40">Gate {gate} Staff ID:</label>
+                            <input
+                                type="text"
+                                value={assignments[quadrant][gate]}
+                                onChange={(e) => handleChange(quadrant, gate, e.target.value)}
+                                className="border px-3 py-1 rounded w-full"
+                                placeholder="Enter Staff ID"
+                            />
+                        </div>
+                    ))}
+                </div>
+            ))}
+            <button
+                onClick={handleSubmit}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded"
+            >
+                Submit Assignments
+            </button>
+
+            {submissionStatus === 'success' && (
+                <p className="mt-4 text-green-600">{message}</p>
+            )}
+            {submissionStatus === 'error' && (
+                <p className="mt-4 text-red-600">{message}</p>
+            )}
+        </div>
+    );
+};
+
+
+
+
+export { CreateEvent, AssignStaffToGates };

@@ -47,12 +47,11 @@ exports.createEvent = (req, res) => {
 exports.getEventsByAdmin = (req, res) => {
     const adminId = req.params.adminId;
 
-    // Basic validation: Check if adminId is provided
     if (!adminId) {
         return res.status(400).json({ message: 'Admin ID is required' });
     }
 
-    const query = 'SELECT * FROM events WHERE admin_id = ?'; //  Query
+    const query = 'SELECT * FROM events WHERE admin_id = ? AND event_status = "active"';
 
     db.query(query, [adminId], (err, results) => {
         if (err) {
@@ -60,12 +59,107 @@ exports.getEventsByAdmin = (req, res) => {
             return res.status(500).json({ message: 'Failed to fetch events', error: err });
         }
 
-        if (results.length === 0) {
-            //  No events found for this admin
-            return res.status(404).json([]);
+        // Always return 200, even if no events (frontend will show "Add Events")
+        return res.status(200).json(results);
+    });
+};
+
+
+exports.markEventAsCompleted = (req, res) => {
+    const eventId = req.params.eventId;
+
+    // Basic validation: Check if eventId is provided
+    if (!eventId) {
+        return res.status(400).json({ message: 'Event ID is required' });
+    }
+
+    const query = 'UPDATE events SET event_status = "completed" WHERE event_id = ?';
+
+    db.query(query, [eventId], (err, result) => {
+        if (err) {
+            console.error('Error updating event status:', err);
+            return res.status(500).json({ message: 'Failed to update event status', error: err });
         }
 
-        //  Events found
-        res.status(200).json(results);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Event not found' });
+        }
+
+        res.status(200).json({ message: 'Event status updated to completed' });
+    });
+};
+
+exports.assignStaffToGates = (req, res) => {
+    const staffAssignments = req.body; // 👈 Directly accessing the array
+
+    if (!Array.isArray(staffAssignments) || staffAssignments.length === 0) {
+        return res.status(400).json({ message: 'Invalid staff assignments.' });
+    }
+
+    // Optional validation: Check if any staff_id is missing or invalid
+    const hasInvalid = staffAssignments.some(item =>
+        !item.staff_id || typeof item.staff_id !== 'string'
+    );
+
+    if (hasInvalid) {
+        return res.status(400).json({ message: 'All gates must have a valid staff ID.' });
+    }
+
+    const values = staffAssignments.map(item => [
+        item.event_id,
+        item.staff_id,
+        item.quadrant_number,
+        item.gate_number
+    ]);
+
+    const query = `
+        INSERT INTO staffforgates (event_id, staff_id, quadrant_number, gate_number)
+        VALUES ?
+        ON DUPLICATE KEY UPDATE staff_id = VALUES(staff_id)
+    `;
+
+    db.query(query, [values], (err, result) => {
+        if (err) {
+            console.error('Error inserting staff assignments:', err);
+            return res.status(500).json({ message: 'Database error during assignment.' });
+        }
+        return res.status(201).json({ message: 'Staff assigned to gates successfully.' });
+    });
+};
+
+exports.getEventDetails = (req, res) => {
+    const eventId = req.params.eventId;
+
+    const query = 'SELECT * FROM events WHERE event_id = ?';
+    db.query(query, [eventId], (err, results) => {
+        if (err) {
+            console.error('Error fetching event:', err);
+            return res.status(500).json({ error: 'Internal server error' });
+        }
+
+        if (results.length === 0) {
+            return res.status(404).json({ error: 'Event not found' });
+        }
+
+        res.json(results[0]); // Send the first event if found
+    });
+};
+
+exports.getAssignedStaffForEvent = (req, res) => {
+    const { eventId } = req.params;
+
+    const query = `
+        SELECT sfg.staff_id, sfg.quadrant_number, sfg.gate_number, u.name
+        FROM staffforgates sfg
+        LEFT JOIN staffs u ON sfg.staff_id = u.staff_id
+        WHERE sfg.event_id = ?
+    `;
+
+    db.query(query, [eventId], (err, results) => {
+        if (err) {
+            console.error("Error fetching staff assignments:", err);
+            return res.status(500).json({ message: "Database error" });
+        }
+        return res.status(200).json(results);
     });
 };

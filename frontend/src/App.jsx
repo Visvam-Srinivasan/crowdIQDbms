@@ -7,7 +7,7 @@ import Home from './components/Home';
 import AdminDashboard from './components/admin/AdminDashboard';
 import StaffDashboard from './components/staff/StaffDashboard';
 import AttendeeDashboard from './components/attendee/StaffDashboard';
-import CreateEvent from './components/admin/CreateEvent';
+import { AssignStaffToGates, CreateEvent } from './components/admin/CreateEvent';
 
 function App() {
 
@@ -21,7 +21,7 @@ function App() {
           <Route path="/signup" element={<SignUp />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/createEvent" element={<CreateEvent />} />
-
+          <Route path="/admin/assignStaff/:eventId" element={<AssignStaffToGates />} />
           <Route path="/staff/dashboard" element={<StaffDashboard />} />
           <Route path="/attendee/dashboard" element={<AttendeeDashboard />} />
 
