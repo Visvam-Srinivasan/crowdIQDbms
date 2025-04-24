@@ -64,7 +64,6 @@ exports.getEventsByAdmin = (req, res) => {
     });
 };
 
-
 exports.markEventAsCompleted = (req, res) => {
     const eventId = req.params.eventId;
 
@@ -163,3 +162,46 @@ exports.getAssignedStaffForEvent = (req, res) => {
         return res.status(200).json(results);
     });
 };
+
+exports.getStaffEvents = (req, res) => {
+    const { staffId } = req.params;
+
+    const query = `
+        SELECT e.event_id, e.event_name, e.event_description, e.event_date, e.event_time, e.event_location,
+               sfg.quadrant_number, sfg.gate_number
+        FROM events e
+        JOIN staffforgates sfg ON e.event_id = sfg.event_id
+        WHERE sfg.staff_id = ?
+    `;
+
+    db.query(query, [staffId], (err, results) => {
+        if (err) {
+            console.error("Error fetching events for staff:", err);
+            return res.status(500).json({ message: "Database error" });
+        }
+        return res.status(200).json(results);
+    });
+};
+
+exports.searchEvent = async (req, res) => {
+    const { query } = req.query;
+  
+    try {
+      const sql = `
+        SELECT * FROM events 
+        WHERE event_id = ? OR event_name LIKE ?
+        LIMIT 1
+      `;
+  
+      const values = [query, `%${query}%`];
+  
+      db.query(sql, values, (err, results) => {
+        if (err) return res.status(500).json({ message: 'DB Error' });
+        if (results.length === 0) return res.status(404).json({ message: 'Event not found' });
+  
+        return res.status(200).json(results[0]);
+      });
+    } catch (error) {
+      return res.status(500).json({ message: 'Server Error' });
+    }
+  };

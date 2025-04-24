@@ -123,12 +123,16 @@ function SignUp() {
           Register
         </button>
         {message && <p className="text-center mt-2 text-green-500">{message}</p>}
-        {signUpSuccess &&         <button
-          onClick={handleLogin}
-          className="bg-green-500 hover:bg-blue-600 text-white px-4 py-2 rounded flex items-center transition-colors cursor-pointer"
-        >
-          Login
-        </button>}
+        {signUpSuccess && (
+          <div className="flex justify-center items-center h-screen">
+            <button
+              onClick={handleLogin}
+              className="bg-green-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition-colors cursor-pointer"
+            >
+              Login
+            </button>
+          </div>
+        )}
 
       </form>
     );

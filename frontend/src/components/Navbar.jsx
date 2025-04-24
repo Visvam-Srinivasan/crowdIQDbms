@@ -69,7 +69,7 @@ function Navbar() {
         onClick={handleHomeClick}
       >
         <Users className="mr-2 w-6 h-6" />
-        CrowdIQ
+        EventIQ
         {isLoggedIn && (
           <span className="text-gray-300 ml-2">| Welcome, {userName || 'User'}</span>
         )}

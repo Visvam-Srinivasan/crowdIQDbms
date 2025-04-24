@@ -6,7 +6,7 @@ import SignUp from './components/authentication/SignUp';
 import Home from './components/Home';
 import AdminDashboard from './components/admin/AdminDashboard';
 import StaffDashboard from './components/staff/StaffDashboard';
-import AttendeeDashboard from './components/attendee/StaffDashboard';
+import AttendeeDashboard from './components/attendee/AttendeeDashboard';
 import { AssignStaffToGates, CreateEvent } from './components/admin/CreateEvent';
 
 function App() {
