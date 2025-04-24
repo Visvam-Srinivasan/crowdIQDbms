@@ -15,6 +15,7 @@ router.post('/events/staffForGates', eventController.assignStaffToGates);
 router.get('/events/getEvent/:eventId', eventController.getEventDetails);
 router.get('/events/staffAssignments/:eventId', eventController.getAssignedStaffForEvent);
 router.get('/events/getStaffAssignment/:staffId', eventController.getStaffEvents);
+router.get('/events/deleteEvent/', eventController.deleteEvent);
 
 router.get('/events/searchEvent', eventController.searchEvent);
 router.delete('/bookings/delete/:booking_id', bookingController.deleteBooking);

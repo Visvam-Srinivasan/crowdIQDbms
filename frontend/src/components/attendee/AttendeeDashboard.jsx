@@ -88,7 +88,7 @@ const AttendeeDashboard = () => {
         setShowBookingForm(false);
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Booking failed');
+      alert(err.response?.data?.message || 'Booking failed');
     }
   };
   

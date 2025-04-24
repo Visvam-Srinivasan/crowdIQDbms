@@ -55,27 +55,40 @@ const StaffDashboard = () => {
             <section className="text-center py-6 bg-gray-50 dark:bg-gray-800 rounded-lg mb-8">
                 <h2 className="text-3xl font-semibold text-gray-900 dark:text-white mb-6">Staff Dashboard</h2>
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Your Assigned Events</h3>
-                </section>
-
+            </section>
+    
             {events.length === 0 ? (
                 <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-lg">
                     <p className="text-gray-600 dark:text-gray-300 mb-4">You are not assigned to any events.</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {events.map((event) => (
-                        <div key={event.event_id} className="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 flex flex-col justify-between">
-                            <div>
-                                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{event.event_name}</h3>
-                                <p className="text-gray-600 dark:text-gray-300 mb-1">Description: {event.event_description}</p>
-                                <p className="text-gray-600 dark:text-gray-300 mb-1">Date: {event.event_date}</p>
-                                <p className="text-gray-600 dark:text-gray-300 mb-1">Time: {event.event_time}</p>
-                                <p className="text-gray-600 dark:text-gray-300 mb-1">Location: {event.event_location}</p>
-                                <p className="text-gray-600 dark:text-gray-300 mb-1">Quadrant: {event.quadrant_number}</p>
-                                <p className="text-gray-600 dark:text-gray-300 mb-1">Gate: {event.gate_number}</p>
-                            </div>
-                        </div>
-                    ))}
+                <div className="overflow-x-auto bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <table className="min-w-full table-auto text-left border-collapse">
+                        <thead className="bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white">
+                            <tr>
+                                <th className="py-2 px-4">Event Name</th>
+                                <th className="py-2 px-4">Description</th>
+                                <th className="py-2 px-4">Date</th>
+                                <th className="py-2 px-4">Time</th>
+                                <th className="py-2 px-4">Location</th>
+                                <th className="py-2 px-4">Quadrant</th>
+                                <th className="py-2 px-4">Gate</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {events.map((event) => (
+                                <tr key={event.event_id} className="bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                    <td className="py-2 px-4 text-gray-900 dark:text-white">{event.event_name}</td>
+                                    <td className="py-2 px-4 text-gray-600 dark:text-gray-300">{event.event_description}</td>
+                                    <td className="py-2 px-4 text-gray-600 dark:text-gray-300">{event.event_date}</td>
+                                    <td className="py-2 px-4 text-gray-600 dark:text-gray-300">{event.event_time}</td>
+                                    <td className="py-2 px-4 text-gray-600 dark:text-gray-300">{event.event_location}</td>
+                                    <td className="py-2 px-4 text-gray-600 dark:text-gray-300">{event.quadrant_number}</td>
+                                    <td className="py-2 px-4 text-gray-600 dark:text-gray-300">{event.gate_number}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             )}
         </div>

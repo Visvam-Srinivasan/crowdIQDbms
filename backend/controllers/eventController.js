@@ -205,3 +205,29 @@ exports.searchEvent = async (req, res) => {
       return res.status(500).json({ message: 'Server Error' });
     }
   };
+
+
+exports.deleteEvent = (req, res) => {
+    const { eventId } = req.body;
+
+    // Basic validation
+    if (!eventId || isNaN(Number(eventId))) {
+        return res.status(400).json({ message: 'Valid eventId is required' });
+    }
+
+    const query = 'DELETE FROM events WHERE event_id = ?';
+
+    db.query(query, [eventId], (err, result) => {
+        if (err) {
+            console.error('Error deleting event:', err);
+            return res.status(500).json({ message: 'Failed to delete event', error: err });
+        }
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Event not found' });
+        }
+
+        res.status(200).json({ message: 'Event deleted successfully' });
+    });
+};
+  
