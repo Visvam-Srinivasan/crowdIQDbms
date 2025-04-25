@@ -16,6 +16,9 @@ router.get('/events/getEvent/:eventId', eventController.getEventDetails);
 router.get('/events/staffAssignments/:eventId', eventController.getAssignedStaffForEvent);
 router.get('/events/getStaffAssignment/:staffId', eventController.getStaffEvents);
 router.get('/events/deleteEvent/', eventController.deleteEvent);
+router.get('/events/getAttendeeList/:eventId/:quadrant/:gate', eventController.getAttendeesByEventQuadrantGate);
+router.post('/events/toggleAdmission', eventController.toggleAdmissionStatus);
+
 
 router.get('/events/searchEvent', eventController.searchEvent);
 router.delete('/bookings/delete/:booking_id', bookingController.deleteBooking);

@@ -230,4 +230,49 @@ exports.deleteEvent = (req, res) => {
         res.status(200).json({ message: 'Event deleted successfully' });
     });
 };
-  
+
+exports.getAttendeesByEventQuadrantGate = (req, res) => {
+    const { eventId, quadrant, gate } = req.params;
+
+    const query = `
+        SELECT attendee_id, admission_status, number_of_attendees 
+        FROM bookings 
+        WHERE event_id = ? AND quadrant_number = ? AND gate_number = ?
+    `;
+
+    db.query(query, [eventId, quadrant, gate], (err, results) => {
+        if (err) {
+            console.error('Error fetching attendees:', err);
+            return res.status(500).json({ message: 'Error fetching attendees' });
+        }
+        res.status(200).json(results);
+    });
+};
+
+exports.toggleAdmissionStatus = (req, res) => {
+    const { attendeeId, admissionStatus } = req.body;
+
+    if (attendeeId === undefined || admissionStatus === undefined) {
+        return res.status(400).json({ message: 'Attendee ID and new status are required' });
+    }
+
+    const query = `
+        UPDATE bookings 
+        SET admission_status = ? 
+        WHERE attendee_id = ?
+    `;
+
+    db.query(query, [admissionStatus, attendeeId], (err, result) => {
+        if (err) {
+            console.error('Error updating admission status:', err);
+            return res.status(500).json({ message: 'Failed to update admission status' });
+        }
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Attendee not found' });
+        }
+
+        res.status(200).json({ message: 'Admission status updated successfully' });
+    });
+};
+
