@@ -276,3 +276,71 @@ exports.toggleAdmissionStatus = (req, res) => {
     });
 };
 
+// controllers/eventController.js
+
+exports.reassignCrowded = (req, res) => {
+    const { eventId } = req.body;
+
+    if (!eventId) {
+        return res.status(400).json({ message: 'Event ID is required' });
+    }
+
+    // Step 1: Find last two attendees of that event ordered by attendee_id descending
+    const findLastTwoQuery = `
+        SELECT * FROM bookings 
+        WHERE event_id = ? 
+        ORDER BY attendee_id DESC 
+        LIMIT 2
+    `;
+
+    db.query(findLastTwoQuery, [eventId], (err, lastTwoAttendees) => {
+        if (err) {
+            console.error('Error fetching last two attendees:', err);
+            return res.status(500).json({ message: 'Failed to fetch last two attendees' });
+        }
+
+        if (lastTwoAttendees.length === 0) {
+            return res.status(404).json({ message: 'No attendees found' });
+        }
+
+        // Step 2: Find the gate with maximum admitted attendees
+        const findMaxGateQuery = `
+            SELECT gate_number, COUNT(*) AS admitted_count
+            FROM bookings
+            WHERE event_id = ? AND admission_status = 1
+            GROUP BY gate_number
+            ORDER BY admitted_count DESC
+            LIMIT 1
+        `;
+
+        db.query(findMaxGateQuery, [eventId], (err, maxGateResult) => {
+            if (err) {
+                console.error('Error finding gate with max admitted:', err);
+                return res.status(500).json({ message: 'Failed to find gate with max admitted' });
+            }
+
+            if (maxGateResult.length === 0) {
+                return res.status(404).json({ message: 'No admitted attendees found' });
+            }
+
+            const targetGate = maxGateResult[0].gate_number;
+
+            // Step 3: Update the last two attendees to the target gate
+            const attendeeIds = lastTwoAttendees.map(a => a.attendee_id);
+            const updateQuery = `
+                UPDATE bookings
+                SET gate_number = ?
+                WHERE attendee_id IN (?, ?)
+            `;
+
+            db.query(updateQuery, [targetGate, attendeeIds[0], attendeeIds[1]], (err, result) => {
+                if (err) {
+                    console.error('Error updating attendee gate:', err);
+                    return res.status(500).json({ message: 'Failed to update gate' });
+                }
+
+                res.status(200).json({ message: 'Attendees reassigned successfully' });
+            });
+        });
+    });
+};

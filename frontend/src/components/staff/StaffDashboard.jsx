@@ -78,6 +78,15 @@ const StaffDashboard = () => {
         });
     };
     
+    const handleCrowded = async (attendeeId) => {
+        try {
+            await API.post('/events/reassignCrowded', { eventId: selectedEventId });
+            alert('Crowded! Reload to see the new attendee list.');
+        } catch (err) {
+            console.error('Error reassigning crowded attendees:', err);
+            alert('Failed to reassign attendees.');
+        }
+    };
     
     
     if (loading) {
@@ -151,24 +160,24 @@ const StaffDashboard = () => {
                                 }
                             </p>
                             <table className="min-w-full table-auto text-left border">
-                                <thead className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white">
-                                    <tr>
-                                        <th className="py-2 px-4">Attendee ID</th>
-                                        <th className="py-2 px-4">Number of Attendees</th>
-                                        <th className="py-2 px-4">Admission Status</th>
-                                        <th className="py-2 px-4">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {selectedEventAttendees.map((attendee) => (
-                                        <tr key={attendee.attendee_id} className="border-t">
-                                            <td className="py-2 px-4 text-gray-900 dark:text-white">{attendee.attendee_id}</td>
-                                            <td className="py-2 px-4 text-gray-700 dark:text-gray-300">{attendee.number_of_attendees}</td>
-                                            <td className="py-2 px-4 text-gray-700 dark:text-gray-300">{attendee.admission_status == 0 ? "Not admitted" : "Admitted"}</td>
-                                            <td className="py-2 px-4">
+                            <thead className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white">
+                                <tr>
+                                    <th className="py-2 px-4">Attendee ID</th>
+                                    <th className="py-2 px-4">Number of Attendees</th>
+                                    <th className="py-2 px-4">Admission Status</th>
+                                    <th className="py-2 px-4">Quick Actions</th> {/* Updated column name */}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {selectedEventAttendees.map((attendee) => (
+                                    <tr key={attendee.attendee_id} className="border-t">
+                                        <td className="py-2 px-4 text-gray-900 dark:text-white">{attendee.attendee_id}</td>
+                                        <td className="py-2 px-4 text-gray-700 dark:text-gray-300">{attendee.number_of_attendees}</td>
+                                        <td className="py-2 px-4 text-gray-700 dark:text-gray-300">{attendee.admission_status == 0 ? "Not admitted" : "Admitted"}</td>
+                                        <td className="py-2 px-4 flex flex-col gap-2">
                                             <button
                                                 className={`px-3 py-1 rounded ${
-                                                    attendee.admission_status === 'Admitted'
+                                                    attendee.admission_status === 1
                                                         ? 'bg-red-500 hover:bg-red-600'
                                                         : 'bg-green-500 hover:bg-green-600'
                                                 } text-white`}
@@ -176,10 +185,19 @@ const StaffDashboard = () => {
                                             >
                                                 {attendee.admission_status === 0 ? 'Admit' : 'Unadmit'}
                                             </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
+
+                                            {/* Crowded button */}
+                                            <button
+                                                className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
+                                                onClick={() => handleCrowded(attendee.attendee_id)}
+                                            >
+                                                Crowded
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+
                             </table>
                         </div>
                     )}
